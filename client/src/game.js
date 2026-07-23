@@ -1,3 +1,5 @@
+import { findMonsterSpawn, hash } from "./world.js";
+
 const TILE = 56;
 const MAP_SIZE = 48;
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "";
@@ -38,10 +40,6 @@ const ITEMS = {
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-const hash = (x, y, seed = 13) => {
-  const v = Math.sin(x * 127.1 + y * 311.7 + seed * 71.9) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 function defaultState(name, vocation) {
   const job = VOCATIONS[vocation];
@@ -187,11 +185,9 @@ export class AshfallGame {
     const kinds = ["rat", "rat", "wolf", "wolf", "skeleton", "wraith"];
     let id = 0;
     for (let i = 0; i < 34; i++) {
-      let x, y;
-      do {
-        x = 3 + Math.floor(hash(i, 4) * (MAP_SIZE - 6));
-        y = 3 + Math.floor(hash(i, 8) * (MAP_SIZE - 6));
-      } while (this.tileMap[y][x].blocked || (x > 16 && x < 31 && y > 16 && y < 30));
+      const spawn = findMonsterSpawn(this.tileMap, i);
+      if (!spawn) continue;
+      const { x, y } = spawn;
       const ring = Math.hypot(x - 24, y - 24);
       const kind = ring > 17 ? kinds[3 + Math.floor(hash(i, 12) * 3)] : kinds[Math.floor(hash(i, 13) * 4)];
       const spec = MONSTER_KINDS[kind];
