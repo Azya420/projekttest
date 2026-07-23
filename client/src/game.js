@@ -91,18 +91,34 @@ export class AshfallGame {
     ];
   }
 
-  async start() {
-    const saved = await this.options.account.load();
-    if (saved?.player && saved.player.name === this.options.name) {
-      this.state = saved;
-      this.player = saved.player;
-    }
+  start() {
+    this.restore(this.options.account.loadLocal?.());
     this.mount();
     this.spawnMonsters();
     this.bind();
     this.connect();
     this.log("Witaj w Ashfall. Strażniczka Maeve czeka przy placu.", "loot");
     requestAnimationFrame((time) => this.loop(time));
+    this.restoreCloudSave();
+  }
+
+  restore(saved) {
+    if (!saved?.player || saved.player.name !== this.options.name) return false;
+    this.state = saved;
+    this.player = saved.player;
+    return true;
+  }
+
+  async restoreCloudSave() {
+    try {
+      const saved = await this.options.account.load();
+      if ((saved?.playtime || 0) <= (this.state.playtime || 0)) return;
+      if (!this.restore(saved)) return;
+      this.renderPanel();
+      this.updateUI();
+    } catch {
+      this.log("Zapis w chmurze jest chwilowo niedostępny. Gra działa lokalnie.");
+    }
   }
 
   mount() {
