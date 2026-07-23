@@ -101,12 +101,10 @@ document.querySelector("#entry-form").addEventListener("submit", async (event) =
   const name = document.querySelector("#character-name").value.trim() || "Wędrowiec";
   const vocation = new FormData(event.currentTarget).get("vocation");
   landing.classList.add("leaving");
-  setTimeout(async () => {
-    landing.classList.add("hidden");
-    gameRoot.classList.remove("hidden");
-    const game = new AshfallGame(gameRoot, { name, vocation, account });
-    await game.start();
-  }, 420);
+  landing.classList.add("hidden");
+  gameRoot.classList.remove("hidden");
+  const game = new AshfallGame(gameRoot, { name, vocation, account });
+  game.start();
 });
 
 account.session().then((user) => {
