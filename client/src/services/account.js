@@ -10,10 +10,22 @@ const localKey = "ashfall-character-v1";
 export const account = {
   enabled,
 
+  loadLocal() {
+    try {
+      return JSON.parse(localStorage.getItem(localKey) || "null");
+    } catch {
+      return null;
+    }
+  },
+
   async session() {
     if (!supabase) return null;
-    const { data } = await supabase.auth.getUser();
-    return data.user;
+    try {
+      const { data } = await supabase.auth.getUser();
+      return data.user;
+    } catch {
+      return null;
+    }
   },
 
   async signIn(email, password) {
@@ -31,12 +43,16 @@ export const account = {
   },
 
   async load() {
-    const local = JSON.parse(localStorage.getItem(localKey) || "null");
+    const local = this.loadLocal();
     if (!supabase) return local;
     const user = await this.session();
     if (!user) return local;
-    const { data } = await supabase.from("characters").select("state").eq("user_id", user.id).maybeSingle();
-    return data?.state || local;
+    try {
+      const { data } = await supabase.from("characters").select("state").eq("user_id", user.id).maybeSingle();
+      return data?.state || local;
+    } catch {
+      return local;
+    }
   },
 
   async save(state) {
